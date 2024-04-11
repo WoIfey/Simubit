@@ -6,8 +6,23 @@ import AuthProvider from './context/AuthProvider'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-	title: 'Crypto',
+	title: 'Simubit',
 	description: 'Made with next.js',
+	openGraph: {
+		title: 'Simubit',
+		description: 'Buy and sell fake currency!',
+		url: 'https://simubit.vercel.app',
+		images: [
+			{
+				url: 'https://wolfey.s-ul.eu/uwmaPXim',
+				width: 1280,
+				height: 720,
+				alt: 'Thumbnail',
+			},
+		],
+		locale: 'en_US',
+		type: 'website',
+	},
 }
 
 export default function RootLayout({
