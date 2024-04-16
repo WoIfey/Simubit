@@ -17,7 +17,6 @@ export async function saveTransaction(user_id: string, units: string, symbol: st
 }
 
 export async function removeTransaction(id: string, count: string) {
-    console.log(`Removing ${count} units from transaction with ID ${id}`);
     try {
         await db.query("UPDATE crypto SET units = units - $1 WHERE id = $2", [count, id])
         const result = await db.query("SELECT units FROM crypto WHERE id = $1", [id])
