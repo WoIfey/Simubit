@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 type User =
 	| {
@@ -17,16 +17,10 @@ export default function User({ user }: Props) {
 		<div className="flex items-center">
 			<div>
 				{user?.image && (
-					<div>
-						<Image
-							className="inline-block h-9 w-9 rounded-full"
-							src={user.image}
-							width={200}
-							height={200}
-							alt={user.name ?? 'Profile Pic'}
-							priority={true}
-						/>
-					</div>
+					<Avatar>
+						<AvatarImage src={user?.image} />
+						<AvatarFallback>{user?.name}</AvatarFallback>
+					</Avatar>
 				)}
 			</div>
 			<div className="ml-3">

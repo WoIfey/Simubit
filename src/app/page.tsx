@@ -11,6 +11,12 @@ export default async function Home() {
 	let data = await getTransactions(session?.user.id)
 
 	return (
-		<>{session ? <Crypto api={data} /> : <h1 className="text-white">Test</h1>}</>
+		<>
+			{session ? (
+				<Crypto api={data} />
+			) : (
+				<h1 className="text-white">Not Logged In</h1>
+			)}
+		</>
 	)
 }

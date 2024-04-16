@@ -36,7 +36,7 @@ export default function LogOut() {
 							onClick={() => signOut()}
 							className="rounded-md outline outline-1 outline-slate-500 px-2 py-1 text-sm font-semibold shadow-sm hover:outline-slate-400 hover:outline-2"
 						>
-							Log Out
+							Sign Out
 						</button>
 					</div>
 				</>
