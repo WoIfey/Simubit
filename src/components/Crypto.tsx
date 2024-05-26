@@ -1,11 +1,9 @@
 'use client'
 import BuyButton from '@/components/BuyButton'
 import SellButton from '@/components/SellButton'
-import LogOut from '@/components/LogOut'
 import User from '@/components/User'
 import Loading from '@/components/Loading'
 import { useSession } from 'next-auth/react'
-import { redirect } from 'next/navigation'
 import {
 	ArrowLeftCircleIcon,
 	ArrowRightCircleIcon,
@@ -36,38 +34,30 @@ export default function Crypto({ api }: { api: any[] }) {
 	const [data, setData] = useState<CryptoData[] | null>(null)
 	const [isLoading, setLoading] = useState(true)
 	const [cryptoCurrentPage, setCryptoCurrentPage] = useState(1)
-	const [transactionCurrentPage, setTransactionCurrentPage] = useState(1)
+	const [ordersCurrentPage, setOrdersCurrentPage] = useState(1)
 	const [isXlScreen, setIsXlScreen] = useState(false)
 
 	useEffect(() => {
 		const mediaQuery = window.matchMedia('(min-width: 1280px)')
 		const handleResize = () => setIsXlScreen(mediaQuery.matches)
-
 		mediaQuery.addEventListener('change', handleResize)
 		handleResize()
-
 		return () => mediaQuery.removeEventListener('change', handleResize)
 	}, [])
 
 	useEffect(() => {
 		setCryptoCurrentPage(1)
-		setTransactionCurrentPage(1)
+		setOrdersCurrentPage(1)
 	}, [isXlScreen])
 
-	const transactionsPerPage = isXlScreen ? 10 : 5
+	const ordersPerPage = isXlScreen ? 10 : 5
 	const cryptoPerPage = isXlScreen ? 10 : 5
 
-	const transactionTotalPages = api.length
-		? Math.ceil(api.length / transactionsPerPage)
-		: 0
-	const transactionStartIndex =
-		(transactionCurrentPage - 1) * transactionsPerPage
-	const transactionEndIndex = transactionStartIndex + transactionsPerPage
-	const transactionPageData = api.slice(
-		transactionStartIndex,
-		transactionEndIndex
-	)
-	transactionPageData.sort((a: any, b: any) => b.id - a.id)
+	const ordersTotalPages = api.length ? Math.ceil(api.length / ordersPerPage) : 0
+	const ordersStartIndex = (ordersCurrentPage - 1) * ordersPerPage
+	const ordersEndIndex = ordersStartIndex + ordersPerPage
+	const ordersPageData = api.slice(ordersStartIndex, ordersEndIndex)
+	ordersPageData.sort((a: any, b: any) => b.id - a.id)
 
 	const cryptoTotalPages = data ? Math.ceil(data.length / cryptoPerPage) : 0
 	const cryptoStartIndex = (cryptoCurrentPage - 1) * cryptoPerPage
@@ -89,14 +79,8 @@ export default function Crypto({ api }: { api: any[] }) {
 		return () => clearInterval(intervalId)
 	}, [])
 
-	const { data: session } = useSession({
-		required: true,
-		onUnauthenticated() {
-			redirect('/api/auth/signin')
-		},
-	})
-
-	if (isLoading) return <Loading />
+	const { data: session } = useSession()
+	if (isLoading) return <Loading fullscreen={true} size={64} />
 	if (!data)
 		return (
 			<p className="text-white text-xl flex items-center min-h-dvh">
@@ -106,25 +90,27 @@ export default function Crypto({ api }: { api: any[] }) {
 	return (
 		<div className="w-full flex flex-col items-center">
 			<div className="flex items-center sm:flex-row flex-col gap-3 py-10">
-				<LogOut />
 				<User user={session?.user} />
 			</div>
-
-			<iframe
-				src="https://widget.nicehash.com/countdown/btc-halving-2024-05-10-12-00"
-				width="400"
-				height="350"
-				scrolling="no"
-			/>
-
 			<div className="flex flex-col xl:flex-row xl:gap-20">
 				<div className="pb-12">
-					{api.length === 0 ? (
+					{!session || api.length === 0 ? (
 						<div>
-							<h1 className="text-2xl xl:text-3xl font-semibold">Transactions</h1>
-							<p className="text-slate-500 text-sm pt-3.5">
-								There are no transactions!
-							</p>
+							{session ? (
+								<>
+									<h1 className="text-2xl xl:text-3xl font-semibold">Transactions</h1>
+									<p className="text-slate-500 text-sm pt-3.5">
+										There are no transactions!
+									</p>
+								</>
+							) : (
+								<>
+									<h1 className="text-2xl xl:text-3xl font-semibold">Transactions</h1>
+									<p className="text-slate-500 text-sm pt-3.5">
+										Please sign in to purchase crypto.
+									</p>
+								</>
+							)}
 						</div>
 					) : (
 						<div className="flex flex-col items-center sm:max-w-none max-w-80">
@@ -143,7 +129,7 @@ export default function Crypto({ api }: { api: any[] }) {
 										</TableRow>
 									</TableHeader>
 									<TableBody className="divide-y divide-gray-200">
-										{transactionPageData.map(transaction => (
+										{ordersPageData.map(transaction => (
 											<TableRow key={transaction.id}>
 												<TableCell>{transaction.units}</TableCell>
 												<TableCell>
@@ -191,20 +177,20 @@ export default function Crypto({ api }: { api: any[] }) {
 								<Button
 									className="bg-slate-600 hover:bg-slate-700"
 									size="sm"
-									onClick={() => setTransactionCurrentPage(transactionCurrentPage - 1)}
-									disabled={transactionCurrentPage === 1}
+									onClick={() => setOrdersCurrentPage(ordersCurrentPage - 1)}
+									disabled={ordersCurrentPage === 1}
 								>
 									<ArrowLeftCircleIcon className="h-5 w-5" />
 									<p className="pr-1 pl-1">Previous</p>
 								</Button>
 								<span>
-									{transactionCurrentPage} of {transactionTotalPages}
+									{ordersCurrentPage} of {ordersTotalPages}
 								</span>
 								<Button
 									className="bg-slate-600 hover:bg-slate-700"
 									size="sm"
-									onClick={() => setTransactionCurrentPage(transactionCurrentPage + 1)}
-									disabled={transactionCurrentPage === transactionTotalPages}
+									onClick={() => setOrdersCurrentPage(ordersCurrentPage + 1)}
+									disabled={ordersCurrentPage === ordersTotalPages}
 								>
 									<ArrowRightCircleIcon className="w-5 h-5" />
 									<p className="pr-1 pl-1">Next</p>

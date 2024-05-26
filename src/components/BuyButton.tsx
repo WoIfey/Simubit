@@ -34,14 +34,12 @@ type Props = {
 function buy(
 	user: User,
 	symbol: string,
-	pricePerUnit: number,
+	price: number,
 	name: string,
 	count: string
 ) {
-	const countNumber = parseFloat(count)
-	if (countNumber !== null && user && user.id) {
-		const totalPrice = countNumber * pricePerUnit
-		addTransaction(user.id, count, symbol, totalPrice.toString(), name)
+	if (count !== null && user && user.id) {
+		addTransaction(user.id, count, symbol, price.toString(), name)
 	}
 }
 
@@ -64,48 +62,52 @@ export default function BuyButton({ user, symbol, price, name }: Props) {
 		}
 	}
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
-				<Button className="bg-blue-700 hover:bg-blue-600" size="sm">
-					<PlusCircleIcon className="h-5 w-5" />
-					<p className="pr-1 pl-1">Buy</p>
-				</Button>
-			</DialogTrigger>
-			<DialogContent className="sm:max-w-[425px] bg-slate-900 text-white">
-				<form onSubmit={handleSubmit}>
-					<DialogHeader>
-						<DialogTitle>Buy {name}</DialogTitle>
-						<DialogDescription className="text-slate-500">
-							How much of {symbol} are you buying?
-						</DialogDescription>
-					</DialogHeader>
-					<div className="py-4">
-						<div className="flex flex-col gap-4 pt-2">
-							<Label htmlFor="units">
-								Buying {count} units of {symbol} at{' '}
-								{Number(price).toLocaleString('fi-FI', {
-									style: 'currency',
-									currency: 'USD',
-								})}
-							</Label>
-							<Input
-								id="units"
-								type="number"
-								step="0.00000001"
-								defaultValue="0.00000001"
-								className="text-black"
-								onChange={handleInputChange}
-								value={count}
-							/>
-						</div>
-					</div>
-					<DialogFooter>
-						<Button type="submit" className="bg-sky-700 hover:bg-sky-600">
-							Purchase
+		<>
+			{user && (
+				<Dialog open={open} onOpenChange={setOpen}>
+					<DialogTrigger asChild>
+						<Button className="bg-blue-700 hover:bg-blue-600" size="sm">
+							<PlusCircleIcon className="h-5 w-5" />
+							<p className="pr-1 pl-1">Buy</p>
 						</Button>
-					</DialogFooter>
-				</form>
-			</DialogContent>
-		</Dialog>
+					</DialogTrigger>
+					<DialogContent className="sm:max-w-[425px] bg-slate-900 text-white">
+						<form onSubmit={handleSubmit}>
+							<DialogHeader>
+								<DialogTitle>Buy {name}</DialogTitle>
+								<DialogDescription className="text-slate-500">
+									How much of {symbol} are you buying?
+								</DialogDescription>
+							</DialogHeader>
+							<div className="py-4">
+								<div className="flex flex-col gap-4 pt-2">
+									<Label htmlFor="units">
+										Buying {count} units of {symbol} at{' '}
+										{Number(price).toLocaleString('fi-FI', {
+											style: 'currency',
+											currency: 'USD',
+										})}
+									</Label>
+									<Input
+										id="units"
+										type="number"
+										step="0.00000001"
+										defaultValue="0.00000001"
+										className="text-black"
+										onChange={handleInputChange}
+										value={count}
+									/>
+								</div>
+							</div>
+							<DialogFooter>
+								<Button type="submit" className="bg-sky-700 hover:bg-sky-600">
+									Purchase
+								</Button>
+							</DialogFooter>
+						</form>
+					</DialogContent>
+				</Dialog>
+			)}
+		</>
 	)
 }
