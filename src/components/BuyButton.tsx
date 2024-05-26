@@ -1,6 +1,6 @@
 'use client'
 import { PlusCircleIcon } from '@heroicons/react/24/outline'
-import { addTransaction } from '@/app/actions'
+import { addTransaction } from '@/server/actions'
 import { Button } from '@/components/ui/button'
 import {
 	Dialog,
@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 type User =
 	| {
@@ -31,27 +32,16 @@ type Props = {
 	name: string
 }
 
-function buy(
-	user: User,
-	symbol: string,
-	price: number,
-	name: string,
-	count: string
-) {
-	if (count !== null && user && user.id) {
-		addTransaction(user.id, count, symbol, price.toString(), name)
-	}
-}
-
 export default function BuyButton({ user, symbol, price, name }: Props) {
 	const [open, setOpen] = useState(false)
 	const [count, setCount] = useState('0.00000001')
-
+	const router = useRouter()
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
-		buy(user, symbol, price, name, count)
+		addTransaction(user?.id ?? '', count, symbol, price.toString(), name)
 		setOpen(false)
 		setCount('0.00000001')
+		router.refresh()
 	}
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const value = parseFloat(e.target.value)

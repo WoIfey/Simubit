@@ -89,7 +89,7 @@ export default function Crypto({ api }: { api: any[] }) {
 		)
 	return (
 		<div className="w-full flex flex-col items-center">
-			<div className="flex items-center sm:flex-row flex-col gap-3 py-10">
+			<div className="flex items-center sm:flex-row flex-col gap-3 py-8">
 				<User user={session?.user} />
 			</div>
 			<div className="flex flex-col xl:flex-row xl:gap-20">

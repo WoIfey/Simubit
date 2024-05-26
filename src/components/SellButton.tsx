@@ -1,6 +1,6 @@
 'use client'
 import { MinusCircleIcon } from '@heroicons/react/24/outline'
-import { sellTransaction } from '@/app/actions'
+import { sellTransaction } from '@/server/actions'
 import { Button } from '@/components/ui/button'
 import {
 	Dialog,
@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 type Props = {
 	id: string
@@ -22,21 +23,16 @@ type Props = {
 	name: string
 }
 
-function sell(id: string, count: string) {
-	if (count !== null) {
-		sellTransaction(id, count)
-	}
-}
-
 export default function SellButton({ id, symbol, price, name }: Props) {
 	const [open, setOpen] = useState(false)
 	const [count, setCount] = useState('0.00000001')
-
+	const router = useRouter()
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
-		sell(id, count)
+		sellTransaction(id, count)
 		setOpen(false)
 		setCount('0.00000001')
+		router.refresh()
 	}
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const value = parseFloat(e.target.value)
