@@ -36,8 +36,7 @@ export default async function RootLayout({
 		headers: await headers(),
 	})
 
-	const balance =
-		typeof session?.user?.balance === 'number' ? session.user.balance : 0
+	const balance = session?.user?.balance || 0
 
 	return (
 		<html lang="en" className="dark">

@@ -11,7 +11,6 @@ import {
 	TableRow,
 } from '../components/ui/table'
 import { calcResult } from '@/lib/calcResult'
-import { authClient } from '@/lib/auth-client'
 import { Loader2, TrendingDown, TrendingUp } from 'lucide-react'
 import {
 	Tooltip,
@@ -52,11 +51,6 @@ interface Transaction {
 	user: {
 		balance: number
 	}
-}
-
-interface Props {
-	api: Transaction[]
-	initialBalance: number
 }
 
 const PaginationWrapper = ({
@@ -163,7 +157,15 @@ const usePagination = <T,>(
 	}, [items, currentPage, itemsPerPage])
 }
 
-export default function Crypto({ api, initialBalance, session }: Props) {
+export default function Crypto({
+	api,
+	initialBalance,
+	session,
+}: {
+	api: Transaction[]
+	initialBalance: number
+	session: any
+}) {
 	const [data, setData] = useState<CryptoData[] | null>(null)
 	const [isLoading, setLoading] = useState(true)
 	const [cryptoCurrentPage, setCryptoCurrentPage] = useState(1)

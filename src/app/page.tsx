@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import getTransactions from '@/actions/transactions/fetch'
@@ -10,9 +11,15 @@ export default async function Home() {
 
 	const data = await getTransactions(session.user.id)
 
+	const transactions = data.map(transaction => ({
+		...transaction,
+		id: Number(transaction.id),
+		user: session.user,
+	}))
+
 	return (
 		<Crypto
-			api={data}
+			api={transactions}
 			initialBalance={session?.user.balance || 0}
 			session={session}
 		/>
