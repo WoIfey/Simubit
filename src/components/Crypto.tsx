@@ -223,7 +223,7 @@ export default function Crypto({
 		fetchData()
 		const intervalId = setInterval(fetchData, 7500)
 		return () => clearInterval(intervalId)
-	}, [])
+	})
 
 	if (error) {
 		return (
