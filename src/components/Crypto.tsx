@@ -463,7 +463,7 @@ export default function Crypto({
 												symbol={crypto?.symbol}
 												price={crypto?.quote?.USD?.price || 0}
 												name={crypto?.name}
-												id={crypto?.id}
+												id={crypto?.id.toString()}
 												balance={initialBalance}
 												session={session}
 											/>
