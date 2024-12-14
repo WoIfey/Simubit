@@ -5,6 +5,7 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
@@ -24,6 +25,7 @@ import resetProgress from '@/actions/user/reset'
 import NumberFlow from '@number-flow/react'
 import Link from 'next/link'
 import { Session } from '@/lib/auth-client'
+import deleteUser from '@/actions/user/delete'
 
 export default function Navbar({
 	balance,
@@ -33,8 +35,10 @@ export default function Navbar({
 	session: Session | null
 }) {
 	const [resetDialogOpen, setResetDialogOpen] = useState(false)
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 	const [confirmText, setConfirmText] = useState('')
 	const [isResetting, setIsResetting] = useState(false)
+	const [isDeleting, setIsDeleting] = useState(false)
 	const router = useRouter()
 
 	const signIn = async () => {
@@ -44,7 +48,7 @@ export default function Navbar({
 	}
 
 	const handleReset = async () => {
-		if (confirmText !== 'Reset my progress') return
+		if (confirmText !== 'Reset my wallet') return
 
 		setIsResetting(true)
 		try {
@@ -56,6 +60,22 @@ export default function Navbar({
 			console.error('Error resetting progress:', error)
 		} finally {
 			setIsResetting(false)
+		}
+	}
+
+	const handleDelete = async () => {
+		if (confirmText !== 'Delete my wallet') return
+
+		setIsDeleting(true)
+		try {
+			await deleteUser()
+			setDeleteDialogOpen(false)
+			setConfirmText('')
+			router.refresh()
+		} catch (error) {
+			console.error('Error deleting wallet:', error)
+		} finally {
+			setIsDeleting(false)
 		}
 	}
 
@@ -123,20 +143,28 @@ export default function Navbar({
 											sideOffset={8}
 											className="w-64 bg-black/95 backdrop-blur-xl border border-emerald-500/20 animate-in fade-in-0 zoom-in-95 duration-200"
 										>
-											<div className="px-4 py-3 border-b border-emerald-500/10 space-y-1">
+											<div className="px-4 py-3 space-y-1">
 												<p className="text-xs text-slate-400 truncate">
 													{session?.user?.email}
 												</p>
 											</div>
+											<DropdownMenuSeparator />
 											<DropdownMenuItem
 												onClick={() => setResetDialogOpen(true)}
 												className="text-yellow-500 hover:text-yellow-400 hover:bg-yellow-500/10 focus:bg-yellow-500/10 transition-colors duration-200 cursor-pointer px-4 py-2.5"
 											>
-												Reset Progress
+												Reset Wallet
 											</DropdownMenuItem>
 											<DropdownMenuItem
-												onClick={() => authClient.signOut()}
+												onClick={() => setDeleteDialogOpen(true)}
 												className="text-red-500 hover:text-red-400 hover:bg-red-500/10 focus:bg-red-500/10 transition-colors duration-200 cursor-pointer px-4 py-2.5"
+											>
+												Delete Wallet
+											</DropdownMenuItem>
+											<DropdownMenuSeparator />
+											<DropdownMenuItem
+												onClick={() => authClient.signOut()}
+												className="text-white hover:text-white/80 hover:bg-white/10 focus:bg-white/10 transition-colors duration-200 cursor-pointer px-4 py-2.5"
 											>
 												Disconnect
 											</DropdownMenuItem>
@@ -153,7 +181,7 @@ export default function Navbar({
 				<DialogContent className="bg-black/95 backdrop-blur-xl border border-yellow-500/20">
 					<DialogHeader>
 						<DialogTitle className="text-xl font-bold text-slate-200">
-							Reset Progress
+							Reset Wallet
 						</DialogTitle>
 						<DialogDescription className="text-slate-400">
 							This will delete all your transactions and reset your balance to $10,000.
@@ -162,13 +190,13 @@ export default function Navbar({
 					</DialogHeader>
 					<div className="py-4">
 						<p className="text-sm text-slate-400 mb-2">
-							Type &quot;Reset my progress&quot; to confirm:
+							Type &quot;Reset my wallet&quot; to confirm:
 						</p>
 						<Input
 							value={confirmText}
 							onChange={e => setConfirmText(e.target.value)}
 							className="bg-black/50 border-yellow-500/20 focus:border-yellow-500/40 text-slate-100"
-							placeholder="Reset my progress"
+							placeholder="Reset my wallet"
 						/>
 					</div>
 					<DialogFooter className="gap-2">
@@ -182,7 +210,7 @@ export default function Navbar({
 						<Button
 							variant="destructive"
 							className="bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 hover:text-yellow-400"
-							disabled={confirmText !== 'Reset my progress' || isResetting}
+							disabled={confirmText !== 'Reset my wallet' || isResetting}
 							onClick={handleReset}
 						>
 							{isResetting ? (
@@ -191,7 +219,56 @@ export default function Navbar({
 									Resetting...
 								</>
 							) : (
-								'Reset Progress'
+								'Reset Wallet'
+							)}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			<Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+				<DialogContent className="bg-black/95 backdrop-blur-xl border border-yellow-500/20">
+					<DialogHeader>
+						<DialogTitle className="text-xl font-bold text-slate-200">
+							Delete Wallet
+						</DialogTitle>
+						<DialogDescription className="text-slate-400">
+							This will delete your wallet and all your transactions. This action
+							cannot be undone.
+						</DialogDescription>
+					</DialogHeader>
+					<div className="py-4">
+						<p className="text-sm text-slate-400 mb-2">
+							Type &quot;Delete my wallet&quot; to confirm:
+						</p>
+						<Input
+							value={confirmText}
+							onChange={e => setConfirmText(e.target.value)}
+							className="bg-black/50 border-red-500/20 focus:border-red-500/40 text-slate-100"
+							placeholder="Delete my wallet"
+						/>
+					</div>
+					<DialogFooter className="gap-2">
+						<Button
+							variant="ghost"
+							onClick={() => setDeleteDialogOpen(false)}
+							className="hover:bg-white/5 text-slate-400 hover:text-slate-200"
+						>
+							Cancel
+						</Button>
+						<Button
+							variant="destructive"
+							className="bg-red-500/10 hover:bg-red-500/20 text-red-500 hover:text-red-400"
+							disabled={confirmText !== 'Delete my wallet' || isDeleting}
+							onClick={handleDelete}
+						>
+							{isDeleting ? (
+								<>
+									<Loader2 className="h-4 w-4 animate-spin mr-2" />
+									Deleting...
+								</>
+							) : (
+								'Delete Wallet'
 							)}
 						</Button>
 					</DialogFooter>

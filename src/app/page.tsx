@@ -12,7 +12,7 @@ export default async function Home() {
 
 	const transactions = data.map(item => ({
 		...item,
-		id: Number(item.id),
+		id: item.id,
 		user: session?.user,
 	}))
 

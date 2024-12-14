@@ -39,11 +39,10 @@ interface CryptoData {
 			percent_change_24h: number
 		}
 	}
-	cmc_rank: number
 }
 
 interface Transaction {
-	id: number
+	id: string
 	units: number
 	name: string
 	symbol: string
@@ -74,34 +73,26 @@ const PaginationWrapper = ({
 	if (totalPages <= 1) return null
 
 	const getPageNumbers = () => {
-		const pageNumbers = []
-		const maxVisible = 3
-		const start = Math.max(1, currentPage - 1)
-		const end = Math.min(totalPages, start + maxVisible - 1)
+		const pages = []
+		const showPages = 5
+		let start = Math.max(1, currentPage - 2)
+		const end = Math.min(totalPages, start + showPages - 1)
 
-		if (start > 1) {
-			pageNumbers.push(1)
-			if (start > 2) pageNumbers.push('...')
+		if (end - start + 1 < showPages) {
+			start = Math.max(1, end - showPages + 1)
 		}
 
 		for (let i = start; i <= end; i++) {
-			pageNumbers.push(i)
+			pages.push(i)
 		}
-
-		if (end < totalPages) {
-			if (end < totalPages - 1) pageNumbers.push('...')
-			pageNumbers.push(totalPages)
-		}
-
-		return pageNumbers
+		return pages
 	}
 
 	return (
-		<Pagination className="pt-6 flex flex-wrap justify-center">
-			<PaginationContent className="flex flex-wrap justify-center">
+		<Pagination className="pt-6 flex justify-center select-none">
+			<PaginationContent>
 				<PaginationItem>
 					<PaginationPrevious
-						href="#"
 						onClick={e => {
 							e.preventDefault()
 							if (currentPage > 1) onPageChange(currentPage - 1)
@@ -112,33 +103,26 @@ const PaginationWrapper = ({
 					/>
 				</PaginationItem>
 
-				{getPageNumbers().map((page, index) => (
-					<PaginationItem key={index}>
-						{page === '...' ? (
-							<span className="px-2 py-1 text-sm text-slate-400">...</span>
-						) : (
-							<PaginationLink
-								href="#"
-								onClick={e => {
-									e.preventDefault()
-									onPageChange(page as number)
-								}}
-								isActive={currentPage === page}
-								className={`px-2 py-1 ${
-									currentPage === page
-										? 'bg-emerald-500/20 hover:bg-emerald-500/30 border-emerald-500/20'
-										: 'bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/20'
-								}`}
-							>
-								{page}
-							</PaginationLink>
-						)}
+				{getPageNumbers().map(pageNum => (
+					<PaginationItem key={pageNum}>
+						<PaginationLink
+							onClick={e => {
+								e.preventDefault()
+								onPageChange(pageNum)
+							}}
+							className={`${
+								pageNum === currentPage
+									? 'bg-emerald-500/20'
+									: 'bg-emerald-500/10 hover:bg-emerald-500/20'
+							} border-emerald-500/20`}
+						>
+							{pageNum}
+						</PaginationLink>
 					</PaginationItem>
 				))}
 
 				<PaginationItem>
 					<PaginationNext
-						href="#"
 						onClick={e => {
 							e.preventDefault()
 							if (currentPage < totalPages) onPageChange(currentPage + 1)
@@ -151,19 +135,6 @@ const PaginationWrapper = ({
 			</PaginationContent>
 		</Pagination>
 	)
-}
-
-const usePagination = <T,>(
-	items: T[],
-	currentPage: number,
-	itemsPerPage: number
-) => {
-	return useMemo(() => {
-		const totalPages = Math.ceil(items.length / itemsPerPage) || 0
-		const startIndex = (currentPage - 1) * itemsPerPage
-		const pageData = items.slice(startIndex, startIndex + itemsPerPage)
-		return { pageData, totalPages }
-	}, [items, currentPage, itemsPerPage])
 }
 
 export default function Crypto({
@@ -181,25 +152,36 @@ export default function Crypto({
 	const [error, setError] = useState<string | null>(null)
 	const [searchQuery, setSearchQuery] = useState('')
 
-	const ITEMS_PER_PAGE = 10
-
-	const { pageData: ordersPageData, totalPages: ordersTotalPages } =
-		usePagination(
-			api.sort((a, b) => b.id - a.id),
-			ordersCurrentPage,
-			ITEMS_PER_PAGE
-		)
-
-	const { pageData: cryptoPageData, totalPages: cryptoTotalPages } =
-		usePagination(
+	const cryptoPageData = useMemo(() => {
+		const filteredData =
 			data?.filter(
 				crypto =>
 					crypto.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
 					crypto.symbol.toLowerCase().includes(searchQuery.toLowerCase())
-			) || [],
-			cryptoCurrentPage,
-			ITEMS_PER_PAGE
-		)
+			) || []
+		const startIndex = (cryptoCurrentPage - 1) * 10
+		return filteredData.slice(startIndex, startIndex + 10)
+	}, [data, searchQuery, cryptoCurrentPage])
+
+	const cryptoTotalPages = useMemo(() => {
+		const filteredLength = (
+			data?.filter(
+				crypto =>
+					crypto.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+					crypto.symbol.toLowerCase().includes(searchQuery.toLowerCase())
+			) || []
+		).length
+		return Math.ceil(filteredLength / 10) || 0
+	}, [data, searchQuery])
+
+	const ordersPageData = useMemo(() => {
+		const startIndex = (ordersCurrentPage - 1) * 10
+		return api.slice(startIndex, startIndex + 10)
+	}, [api, ordersCurrentPage])
+
+	const ordersTotalPages = useMemo(() => {
+		return Math.ceil(api.length / 10) || 0
+	}, [api])
 
 	const totalBalance = useMemo(() => {
 		if (!data || !api.length) return 0
@@ -210,25 +192,25 @@ export default function Crypto({
 		}, 0)
 	}, [data, api])
 
-	const fetchData = async (retries = 3, delay = 1000) => {
-		try {
-			const apiData = await fetch('/api/crypto')
-			if (!apiData.ok) throw new Error(`Error fetching data: ${apiData.status}`)
-			const { data } = await apiData.json()
-			setData(data)
-			setError(null)
-		} catch (err) {
-			if (retries > 0) {
-				setTimeout(() => fetchData(retries - 1, delay * 1.5), delay)
-			} else {
-				setError(err instanceof Error ? err.message : 'Failed to fetch data')
+	useEffect(() => {
+		const fetchCoins = async (retries = 3, delay = 1000) => {
+			try {
+				const apiData = await fetch('/api/crypto')
+				if (!apiData.ok) throw new Error(`Error fetching data: ${apiData.status}`)
+				const { data } = await apiData.json()
+				setData(data)
+				setError(null)
+			} catch (err) {
+				if (retries > 0) {
+					setTimeout(() => fetchCoins(retries - 1, delay * 1.5), delay)
+				} else {
+					setError(err instanceof Error ? err.message : 'Failed to fetch data')
+				}
 			}
 		}
-	}
 
-	useEffect(() => {
-		fetchData()
-		const intervalId = setInterval(fetchData, 7500)
+		fetchCoins()
+		const intervalId = setInterval(fetchCoins, 7500)
 		return () => clearInterval(intervalId)
 	}, [])
 
@@ -309,9 +291,8 @@ export default function Crypto({
 											crypto => crypto.symbol === transaction.symbol
 										)
 										if (!cryptoData) return null
-
 										return (
-											<TableRow key={transaction.id}>
+											<TableRow key={transaction.id} className="border-emerald-500/10">
 												<TableCell className="font-medium">
 													<div className="flex items-center">
 														<img
@@ -381,7 +362,7 @@ export default function Crypto({
 												</TableCell>
 												<TableCell className="text-right">
 													<SellButton
-														id={transaction.id.toString()}
+														id={transaction.id}
 														symbol={transaction.symbol}
 														price={transaction.purchase_price}
 														name={transaction.name}
@@ -434,9 +415,9 @@ export default function Crypto({
 							</TableHeader>
 							<TableBody className="divide-y divide-emerald-500/10">
 								{cryptoPageData.map((crypto, index) => (
-									<TableRow key={crypto.id}>
+									<TableRow key={crypto.id} className="border-emerald-500/10">
 										<TableCell className="font-medium text-center">
-											{(cryptoCurrentPage - 1) * ITEMS_PER_PAGE + index + 1}
+											{(cryptoCurrentPage - 1) * 10 + index + 1}
 										</TableCell>
 										<TableCell className="font-medium">
 											<div className="flex items-center">
@@ -482,7 +463,7 @@ export default function Crypto({
 												symbol={crypto?.symbol}
 												price={crypto?.quote?.USD?.price || 0}
 												name={crypto?.name}
-												id={crypto?.id.toString()}
+												id={crypto?.id}
 												balance={initialBalance}
 												session={session}
 											/>

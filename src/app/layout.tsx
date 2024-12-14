@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 		url: 'https://simubit.vercel.app/',
 		images: [
 			{
-				url: 'https://wolfey.s-ul.eu/uwmaPXim',
+				url: 'https://wolfey.s-ul.eu/jDvsHevo',
 				width: 1280,
 				height: 720,
 				alt: 'Thumbnail',
