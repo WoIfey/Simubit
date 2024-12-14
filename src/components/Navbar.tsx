@@ -30,7 +30,7 @@ export default function Navbar({
 	session,
 }: {
 	balance: number
-	session: Session
+	session: Session | null
 }) {
 	const [resetDialogOpen, setResetDialogOpen] = useState(false)
 	const [confirmText, setConfirmText] = useState('')
