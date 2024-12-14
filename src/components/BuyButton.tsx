@@ -20,6 +20,7 @@ interface BuyButtonProps {
 	name: string
 	id: string
 	balance: number
+	session: any
 }
 
 export default function BuyButton({

@@ -21,6 +21,7 @@ interface SellButtonProps {
 	name: string
 	units: number
 	balance: number
+	session: any
 }
 
 export default function SellButton({

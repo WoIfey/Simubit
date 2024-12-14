@@ -14,7 +14,9 @@ export const auth = betterAuth({
     },
     user: {
         additionalFields: {
-            balance: true
+            balance: {
+                type: "number",
+            }
         }
     }
 });
