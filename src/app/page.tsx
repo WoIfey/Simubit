@@ -1,13 +1,20 @@
+import { auth } from '@/lib/auth'
+import { headers } from 'next/headers'
+import getTransactions from '@/actions/transactions/fetch'
 import Crypto from '@/components/Crypto'
-import { getTransactions } from '@/server/db'
-import { options } from './api/auth/[...nextauth]/options'
-import { getServerSession } from 'next-auth/next'
 
 export default async function Home() {
-	const session = await getServerSession(options)
-	let data = []
-	if (session?.user.id) {
-		data = await getTransactions(session.user.id)
-	}
-	return <Crypto api={data} />
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	})
+
+	const data = await getTransactions(session.user.id)
+
+	return (
+		<Crypto
+			api={data}
+			initialBalance={session?.user.balance || 0}
+			session={session}
+		/>
+	)
 }

@@ -1,17 +1,18 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import AuthProvider from './context/AuthProvider'
-import { Analytics } from '@vercel/analytics/react'
+import Navbar from '@/components/Navbar'
+import { auth } from '@/lib/auth'
+import { headers } from 'next/headers'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
 	title: 'Simubit',
-	description: 'Made with next.js',
+	description: 'Simulate buying and selling crypto with a dummy wallet',
 	openGraph: {
 		title: 'Simubit',
-		description: 'Buy and sell fake currency!',
+		description: 'Simulate buying and selling crypto with a dummy wallet',
 		url: 'https://simubit.vercel.app/',
 		images: [
 			{
@@ -26,20 +27,25 @@ export const metadata: Metadata = {
 	},
 }
 
-export default function RootLayout({
+export default async function RootLayout({
 	children,
 }: Readonly<{
 	children: React.ReactNode
 }>) {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	})
+
+	let balance = 0
+	if (session?.user.id) {
+		balance = session?.user?.balance || 0
+	}
+
 	return (
-		<html lang="en">
+		<html lang="en" className="dark">
 			<body className={inter.className}>
-				<AuthProvider>
-					<main className="bg-gray-950 min-h-dvh flex justify-center text-white">
-						{children}
-						<Analytics />
-					</main>
-				</AuthProvider>
+				<Navbar balance={balance} session={session} />
+				{children}
 			</body>
 		</html>
 	)
