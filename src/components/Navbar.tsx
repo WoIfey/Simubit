@@ -47,6 +47,11 @@ export default function Navbar({
 		})
 	}
 
+	const signOut = async () => {
+		await authClient.signOut()
+		router.refresh()
+	}
+
 	const handleReset = async () => {
 		if (confirmText !== 'Reset my wallet') return
 
@@ -163,10 +168,7 @@ export default function Navbar({
 											</DropdownMenuItem>
 											<DropdownMenuSeparator />
 											<DropdownMenuItem
-												onClick={() => {
-													router.refresh()
-													authClient.signOut()
-												}}
+												onClick={signOut}
 												className="text-white hover:text-white/80 hover:bg-white/10 focus:bg-white/10 transition-colors duration-200 cursor-pointer px-4 py-2.5"
 											>
 												Disconnect
