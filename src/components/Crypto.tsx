@@ -163,28 +163,27 @@ export default function Crypto({
 		}, 0)
 	}, [data, api])
 
-	useEffect(() => {
-		const fetchCoins = async (retries = 3, delay = 1000) => {
-			try {
-				const apiData = await fetch('/api/crypto')
-				if (!apiData.ok) throw new Error(`Error fetching data: ${apiData.status}`)
-				const { data, nextRevalidation: nextRevalidationTime } =
-					await apiData.json()
-				setData(data)
-				setNextRevalidation(new Date(nextRevalidationTime))
-				setError(null)
-			} catch (err) {
-				if (retries > 0) {
-					setTimeout(() => fetchCoins(retries - 1, delay * 1.5), delay)
-				} else {
-					setError(err instanceof Error ? err.message : 'Failed to fetch data')
-				}
+	const fetchCoins = async (retries = 3, delay = 1000) => {
+		try {
+			const apiData = await fetch('/api/crypto')
+			if (!apiData.ok) throw new Error(`Error fetching data: ${apiData.status}`)
+			const { data, nextRevalidation: nextRevalidationTime } = await apiData.json()
+			setData(data)
+			const newRevalidationTime = new Date(nextRevalidationTime)
+			setNextRevalidation(newRevalidationTime)
+			setTimeRemaining('')
+			setError(null)
+		} catch (err) {
+			if (retries > 0) {
+				setTimeout(() => fetchCoins(retries - 1, delay * 1.5), delay)
+			} else {
+				setError(err instanceof Error ? err.message : 'Failed to fetch data')
 			}
 		}
+	}
 
+	useEffect(() => {
 		fetchCoins()
-		const intervalId = setInterval(fetchCoins, 7500)
-		return () => clearInterval(intervalId)
 	}, [])
 
 	useEffect(() => {
