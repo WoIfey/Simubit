@@ -1,10 +1,9 @@
 "use server"
-
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 
 export default async function buyTransaction(user_id: string, units: string, symbol: string, price: string, name: string, coin_id: string) {
     try {
-        const total = parseFloat(units) * parseFloat(price)
+        const total = Math.round(parseFloat(units) * parseFloat(price) * 100) / 100
 
         return await prisma.$transaction(async (tx) => {
             const user = await tx.user.findUnique({

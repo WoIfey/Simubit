@@ -13,15 +13,6 @@ import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import * as Slider from '@radix-ui/react-slider'
 import sellTransaction from '@/actions/transactions/sell'
-import { Session } from '@/lib/auth-client'
-interface SellButtonProps {
-	id: string
-	symbol: string
-	price: number
-	name: string
-	units: number
-	session: Session | null
-}
 
 export default function SellButton({
 	id,
@@ -39,8 +30,13 @@ export default function SellButton({
 	const router = useRouter()
 
 	const total = amount ? parseFloat(amount) * price : 0
+	const roundedAmount = amount ? Number(parseFloat(amount).toFixed(8)) : 0
+	const roundedUnits = Number(units.toFixed(8))
 	const isValidAmount =
-		parseFloat(amount || '0') > 0 && parseFloat(amount || '0') <= units
+		amount &&
+		roundedAmount > 0 &&
+		roundedAmount <= roundedUnits &&
+		!isNaN(roundedAmount)
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -67,7 +63,7 @@ export default function SellButton({
 		const percentage = value[0]
 		const newAmount = (units * percentage) / 100
 		setPercentage(percentage)
-		setAmount(newAmount.toFixed(8))
+		setAmount(Number(newAmount.toFixed(8)).toString())
 		setError(null)
 	}
 
@@ -88,8 +84,10 @@ export default function SellButton({
 		const numValue = parseFloat(sanitizedValue)
 		if (isNaN(numValue)) return
 
-		const newPercentage = Math.min((numValue / units) * 100, 100)
-		setAmount(sanitizedValue)
+		const clampedValue = Math.min(numValue, units)
+		const newPercentage = Math.min((clampedValue / units) * 100, 100)
+
+		setAmount(Number(clampedValue.toFixed(8)).toString())
 		setPercentage(newPercentage)
 	}
 
@@ -187,9 +185,13 @@ export default function SellButton({
 								{error && <p className="text-red-400 text-sm">{error}</p>}
 								{!isValidAmount && amount && (
 									<p className="text-red-400 text-sm">
-										{parseFloat(amount) <= 0
+										{!amount || isNaN(parseFloat(amount))
+											? 'Please enter a valid amount'
+											: parseFloat(amount) <= 0
 											? 'Amount must be greater than 0'
-											: 'Insufficient units'}
+											: parseFloat(amount) > units
+											? `You can only sell up to ${Number(units.toFixed(8))} ${symbol}`
+											: 'Invalid amount'}
 									</p>
 								)}
 							</div>

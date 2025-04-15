@@ -1,24 +1,14 @@
 import { NextResponse } from 'next/server'
 
-interface CoinCapAsset {
-    id: string
-    rank: string
-    symbol: string
-    name: string
-    supply: string
-    priceUsd: string
-    changePercent24Hr: string
-    marketCapUsd: string
-}
-
 export async function GET() {
     try {
-        const res = await fetch('https://api.coincap.io/v2/assets?limit=850')
+        const res = await fetch(`https://rest.coincap.io/v3/assets?apiKey=${process.env.COINCAP_API_KEY}`, {
+            next: { revalidate: 1800 }
+        })
         if (!res.ok) throw new Error('Failed to fetch data')
 
-        const coinCapData = await res.json()
-
-        const mappedData = coinCapData.data.map((asset: CoinCapAsset) => ({
+        const api = await res.json()
+        const coins = api.data.map((asset: Asset) => ({
             id: asset.id,
             name: asset.name,
             symbol: asset.symbol,
@@ -33,7 +23,12 @@ export async function GET() {
             }
         }))
 
-        return NextResponse.json({ data: mappedData })
+        const nextRevalidation = new Date(Math.ceil(Date.now() / 1800000) * 1800000)
+
+        return NextResponse.json({
+            data: coins,
+            nextRevalidation: nextRevalidation.getTime()
+        })
     } catch (error) {
         console.error('Crypto API Error:', error)
         return NextResponse.json(
