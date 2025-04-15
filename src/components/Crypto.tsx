@@ -279,6 +279,7 @@ export default function Crypto({
 							<Table>
 								<TableHeader>
 									<TableRow className="border-emerald-500/20 hover:bg-transparent text-slate-400">
+										<TableHead className="w-[150px]">Bought</TableHead>
 										<TableHead>Name</TableHead>
 										<TableHead className="text-right">Units</TableHead>
 										<TableHead className="text-right">Balance</TableHead>
@@ -294,6 +295,11 @@ export default function Crypto({
 										if (!cryptoData) return null
 										return (
 											<TableRow key={transaction.id} className="border-emerald-500/10">
+												<TableCell className="font-medium">
+													<div className="flex items-center">
+														{new Date(transaction.createdAt).toLocaleDateString()}
+													</div>
+												</TableCell>
 												<TableCell className="font-medium">
 													<div className="flex items-center">
 														<img

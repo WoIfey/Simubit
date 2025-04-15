@@ -36,6 +36,8 @@ type Transaction = {
     name: string
     symbol: string
     purchase_price: number
+    createdAt: Date
+    updatedAt: Date
     user:
     | {
         id: string
