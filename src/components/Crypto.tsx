@@ -1,7 +1,7 @@
 'use client'
 import BuyButton from '../components/BuyButton'
 import SellButton from '../components/SellButton'
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import {
 	Table,
 	TableBody,
@@ -66,7 +66,7 @@ const PaginationWrapper = ({
 							e.preventDefault()
 							if (currentPage > 1) onPageChange(currentPage - 1)
 						}}
-						className={`bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/20 ${
+						className={`hidden sm:flex bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/20 ${
 							currentPage === 1 ? 'pointer-events-none opacity-50' : ''
 						}`}
 					/>
@@ -96,7 +96,7 @@ const PaginationWrapper = ({
 							e.preventDefault()
 							if (currentPage < totalPages) onPageChange(currentPage + 1)
 						}}
-						className={`bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/20 ${
+						className={`hidden sm:flex bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/20 ${
 							currentPage === totalPages ? 'pointer-events-none opacity-50' : ''
 						}`}
 					/>
@@ -163,7 +163,7 @@ export default function Crypto({
 		}, 0)
 	}, [data, api])
 
-	const fetchCoins = async (retries = 3, delay = 1000) => {
+	const fetchCoins = useCallback(async (retries = 3, delay = 1000) => {
 		try {
 			const apiData = await fetch('/api/crypto')
 			if (!apiData.ok) throw new Error(`Error fetching data: ${apiData.status}`)
@@ -180,11 +180,11 @@ export default function Crypto({
 				setError(err instanceof Error ? err.message : 'Failed to fetch data')
 			}
 		}
-	}
+	}, [])
 
 	useEffect(() => {
 		fetchCoins()
-	}, [])
+	}, [fetchCoins])
 
 	useEffect(() => {
 		if (!nextRevalidation) return
@@ -195,6 +195,7 @@ export default function Crypto({
 
 			if (diff <= 0) {
 				setTimeRemaining('Revalidating...')
+				fetchCoins()
 				return
 			}
 
@@ -212,7 +213,7 @@ export default function Crypto({
 		updateTimer()
 		const timerId = setInterval(updateTimer, 1000)
 		return () => clearInterval(timerId)
-	}, [nextRevalidation])
+	}, [nextRevalidation, fetchCoins])
 
 	if (error) {
 		return (
