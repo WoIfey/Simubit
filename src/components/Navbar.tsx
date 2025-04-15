@@ -39,12 +39,21 @@ export default function Navbar({
 	const [confirmText, setConfirmText] = useState('')
 	const [isResetting, setIsResetting] = useState(false)
 	const [isDeleting, setIsDeleting] = useState(false)
+	const [loading, setLoading] = useState(false)
 	const router = useRouter()
 
 	const signIn = async () => {
-		await authClient.signIn.social({
-			provider: 'github',
-		})
+		setLoading(true)
+		try {
+			await authClient.signIn.social({
+				provider: 'github',
+			})
+		} catch (error) {
+			console.error('Error signing in:', error)
+			setLoading(false)
+		} finally {
+			setLoading(false)
+		}
 	}
 
 	const signOut = async () => {
@@ -105,10 +114,18 @@ export default function Navbar({
 								<Button
 									onClick={signIn}
 									variant="outline"
+									disabled={loading}
 									className="relative group border-emerald-500/20 hover:border-emerald-500/40 bg-black/50 hover:bg-black/70 text-sm sm:text-base"
 								>
 									<span className="relative text-emerald-500 group-hover:text-emerald-400">
-										Connect Wallet
+										{loading ? (
+											<>
+												<Loader2 className="h-4 w-4 animate-spin mr-2 inline" />
+												Connecting...
+											</>
+										) : (
+											'Connect Wallet'
+										)}
 									</span>
 								</Button>
 							) : (

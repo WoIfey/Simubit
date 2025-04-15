@@ -1,7 +1,7 @@
 'use client'
 import BuyButton from '../components/BuyButton'
 import SellButton from '../components/SellButton'
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import {
 	Table,
 	TableBody,
@@ -11,7 +11,7 @@ import {
 	TableRow,
 } from '../components/ui/table'
 import { calcResult } from '@/lib/calcResult'
-import { Loader2, TrendingDown, TrendingUp } from 'lucide-react'
+import { Loader2, RefreshCcw, TrendingDown, TrendingUp } from 'lucide-react'
 import {
 	Tooltip,
 	TooltipContent,
@@ -29,37 +29,6 @@ import {
 import NumberFlow from '@number-flow/react'
 import { Input } from '@/components/ui/input'
 import { Session } from '@/lib/auth-client'
-interface CryptoData {
-	id: string
-	name: string
-	symbol: string
-	quote: {
-		USD: {
-			price: number
-			percent_change_24h: number
-		}
-	}
-}
-
-interface Transaction {
-	id: string
-	units: number
-	name: string
-	symbol: string
-	purchase_price: number
-	user:
-		| {
-				id: string
-				createdAt: Date
-				updatedAt: Date
-				email: string
-				emailVerified: boolean
-				name: string
-				image?: string | null
-				balance: number
-		  }
-		| undefined
-}
 
 const PaginationWrapper = ({
 	currentPage,
@@ -97,7 +66,7 @@ const PaginationWrapper = ({
 							e.preventDefault()
 							if (currentPage > 1) onPageChange(currentPage - 1)
 						}}
-						className={`bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/20 ${
+						className={`hidden sm:flex bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/20 ${
 							currentPage === 1 ? 'pointer-events-none opacity-50' : ''
 						}`}
 					/>
@@ -127,7 +96,7 @@ const PaginationWrapper = ({
 							e.preventDefault()
 							if (currentPage < totalPages) onPageChange(currentPage + 1)
 						}}
-						className={`bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/20 ${
+						className={`hidden sm:flex bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/20 ${
 							currentPage === totalPages ? 'pointer-events-none opacity-50' : ''
 						}`}
 					/>
@@ -151,6 +120,8 @@ export default function Crypto({
 	const [ordersCurrentPage, setOrdersCurrentPage] = useState(1)
 	const [error, setError] = useState<string | null>(null)
 	const [searchQuery, setSearchQuery] = useState('')
+	const [nextRevalidation, setNextRevalidation] = useState<Date | null>(null)
+	const [timeRemaining, setTimeRemaining] = useState<string>('')
 
 	const cryptoPageData = useMemo(() => {
 		const filteredData =
@@ -192,27 +163,57 @@ export default function Crypto({
 		}, 0)
 	}, [data, api])
 
-	useEffect(() => {
-		const fetchCoins = async (retries = 3, delay = 1000) => {
-			try {
-				const apiData = await fetch('/api/crypto')
-				if (!apiData.ok) throw new Error(`Error fetching data: ${apiData.status}`)
-				const { data } = await apiData.json()
-				setData(data)
-				setError(null)
-			} catch (err) {
-				if (retries > 0) {
-					setTimeout(() => fetchCoins(retries - 1, delay * 1.5), delay)
-				} else {
-					setError(err instanceof Error ? err.message : 'Failed to fetch data')
-				}
+	const fetchCoins = useCallback(async (retries = 3, delay = 1000) => {
+		try {
+			const apiData = await fetch('/api/crypto')
+			if (!apiData.ok) throw new Error(`Error fetching data: ${apiData.status}`)
+			const { data, nextRevalidation: nextRevalidationTime } = await apiData.json()
+			setData(data)
+			const newRevalidationTime = new Date(nextRevalidationTime)
+			setNextRevalidation(newRevalidationTime)
+			setTimeRemaining('')
+			setError(null)
+		} catch (err) {
+			if (retries > 0) {
+				setTimeout(() => fetchCoins(retries - 1, delay * 1.5), delay)
+			} else {
+				setError(err instanceof Error ? err.message : 'Failed to fetch data')
 			}
 		}
-
-		fetchCoins()
-		const intervalId = setInterval(fetchCoins, 7500)
-		return () => clearInterval(intervalId)
 	}, [])
+
+	useEffect(() => {
+		fetchCoins()
+	}, [fetchCoins])
+
+	useEffect(() => {
+		if (!nextRevalidation) return
+
+		const updateTimer = () => {
+			const now = new Date()
+			const diff = nextRevalidation.getTime() - now.getTime()
+
+			if (diff <= 0) {
+				setTimeRemaining('Revalidating...')
+				fetchCoins()
+				return
+			}
+
+			const hours = Math.floor(diff / (1000 * 60 * 60))
+			const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+			const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+
+			setTimeRemaining(
+				`${hours.toString().padStart(2, '0')}:${minutes
+					.toString()
+					.padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+			)
+		}
+
+		updateTimer()
+		const timerId = setInterval(updateTimer, 1000)
+		return () => clearInterval(timerId)
+	}, [nextRevalidation, fetchCoins])
 
 	if (error) {
 		return (
@@ -388,7 +389,15 @@ export default function Crypto({
 
 				<div className="bg-black/40 backdrop-blur-xl border border-emerald-500/20 p-4 sm:p-6">
 					<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-						<h2 className="text-2xl font-bold text-emerald-400">Market</h2>
+						<div className="flex flex-col">
+							<h2 className="text-2xl font-bold text-emerald-400">Market</h2>
+							{timeRemaining && (
+								<p className="text-sm text-slate-400 flex items-center gap-2">
+									<RefreshCcw className="size-3 mb-0.5" />
+									<span className="font-mono">{timeRemaining}</span>
+								</p>
+							)}
+						</div>
 						<div className="w-full sm:w-auto">
 							<Input
 								type="search"

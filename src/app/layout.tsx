@@ -4,6 +4,8 @@ import './globals.css'
 import Navbar from '@/components/Navbar'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
+import Notice from '@/components/Notice'
+import { getNotice } from '@/actions/transactions/fetch'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -36,6 +38,8 @@ export default async function RootLayout({
 		headers: await headers(),
 	})
 
+	const notice = await getNotice()
+
 	const balance = session?.user?.balance || 0
 
 	return (
@@ -43,6 +47,7 @@ export default async function RootLayout({
 			<body className={inter.className}>
 				<Navbar balance={balance} session={session} />
 				{children}
+				{notice && <Notice message={notice.message} />}
 			</body>
 		</html>
 	)

@@ -13,15 +13,6 @@ import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import * as Slider from '@radix-ui/react-slider'
 import buyTransaction from '@/actions/transactions/buy'
-import { Session } from '@/lib/auth-client'
-interface BuyButtonProps {
-	symbol: string
-	price: number
-	name: string
-	id: string
-	balance: number
-	session: Session | null
-}
 
 export default function BuyButton({
 	symbol,
@@ -41,7 +32,13 @@ export default function BuyButton({
 	const maxPurchaseAmount = balance / price
 
 	const total = amount ? parseFloat(amount) * price : 0
-	const isValidAmount = total >= 0.01 && total <= balance
+	const roundedTotal = Math.round(total * 100) / 100
+	const isValidAmount =
+		amount &&
+		roundedTotal >= 0.01 &&
+		roundedTotal <= balance &&
+		!isNaN(parseFloat(amount)) &&
+		parseFloat(amount) > 0
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -75,7 +72,7 @@ export default function BuyButton({
 		const percentage = value[0]
 		const newAmount = (maxPurchaseAmount * percentage) / 100
 		setPercentage(percentage)
-		setAmount(newAmount.toFixed(8))
+		setAmount(Number(newAmount.toFixed(8)).toString())
 		setError(null)
 	}
 
@@ -96,8 +93,10 @@ export default function BuyButton({
 		const numValue = parseFloat(sanitizedValue)
 		if (isNaN(numValue)) return
 
-		const newPercentage = Math.min((numValue / maxPurchaseAmount) * 100, 100)
-		setAmount(sanitizedValue)
+		const clampedValue = Math.min(numValue, maxPurchaseAmount)
+		const newPercentage = Math.min((clampedValue / maxPurchaseAmount) * 100, 100)
+
+		setAmount(Number(clampedValue.toFixed(8)).toString())
 		setPercentage(newPercentage)
 	}
 
@@ -178,7 +177,7 @@ export default function BuyButton({
 										<span className="text-slate-400">Total Cost:</span>
 										<span className="text-slate-200">
 											$
-											{total.toLocaleString(undefined, {
+											{roundedTotal.toLocaleString(undefined, {
 												minimumFractionDigits: 2,
 												maximumFractionDigits: 2,
 											})}
@@ -195,7 +194,13 @@ export default function BuyButton({
 								{error && <p className="text-red-400 text-sm">{error}</p>}
 								{!isValidAmount && amount && (
 									<p className="text-red-400 text-sm">
-										{total < 0.01 ? 'Minimum purchase is $0.01' : 'Insufficient funds'}
+										{!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0
+											? 'Please enter a valid amount'
+											: roundedTotal < 0.01
+											? 'Minimum purchase is $0.01'
+											: roundedTotal > balance
+											? 'Insufficient funds'
+											: 'Invalid amount'}
 									</p>
 								)}
 							</div>
