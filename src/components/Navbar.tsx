@@ -51,6 +51,8 @@ export default function Navbar({
 		} catch (error) {
 			console.error('Error signing in:', error)
 			setLoading(false)
+		} finally {
+			setLoading(false)
 		}
 	}
 
