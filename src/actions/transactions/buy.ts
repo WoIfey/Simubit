@@ -1,5 +1,5 @@
 "use server"
-import { prisma } from "@/lib/prisma"
+import prisma from "@/lib/prisma"
 
 export default async function buyTransaction(user_id: string, units: string, symbol: string, price: string, name: string, coin_id: string) {
     try {

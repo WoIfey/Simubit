@@ -1,5 +1,5 @@
 "use server"
-import { prisma } from "@/lib/prisma"
+import prisma from "@/lib/prisma"
 
 export default async function getTransactions(id: string) {
     return prisma.crypto.findMany({
