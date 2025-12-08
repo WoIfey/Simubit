@@ -11,7 +11,13 @@ import {
 	TableRow,
 } from '../components/ui/table'
 import { calcResult } from '@/lib/calcResult'
-import { Loader2, RefreshCcw, TrendingDown, TrendingUp } from 'lucide-react'
+import {
+	Info,
+	Loader2,
+	RefreshCcw,
+	TrendingDown,
+	TrendingUp,
+} from 'lucide-react'
 import {
 	Tooltip,
 	TooltipContent,
@@ -29,6 +35,7 @@ import {
 import NumberFlow from '@number-flow/react'
 import { Input } from '@/components/ui/input'
 import { Session } from '@/lib/auth-client'
+import Link from 'next/link'
 
 const PaginationWrapper = ({
 	currentPage,
@@ -242,7 +249,6 @@ export default function Crypto({
 	return (
 		<div className="relative w-full min-h-dvh pt-20 sm:pt-24 pb-4 px-4 sm:px-6 lg:px-8">
 			<div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-900/20 via-gray-900 to-gray-900" />
-
 			<div className="relative max-w-7xl mx-auto space-y-4">
 				{!session || api.length === 0 ? (
 					<div className="bg-black/40 backdrop-blur-xl border border-emerald-500/20 p-8 text-center">
@@ -392,16 +398,27 @@ export default function Crypto({
 						)}
 					</div>
 				)}
-
 				<div className="bg-black/40 backdrop-blur-xl border border-emerald-500/20 p-4 sm:p-6">
 					<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
 						<div className="flex flex-col">
 							<h2 className="text-2xl font-bold text-emerald-400">Market</h2>
 							{timeRemaining && (
-								<p className="text-sm text-slate-400 flex items-center gap-2">
-									<RefreshCcw className="size-3 mb-0.5" />
-									<span className="font-mono">{timeRemaining}</span>
-								</p>
+								<div className="flex items-center gap-2">
+									<div className="text-sm text-slate-400 flex items-center gap-2">
+										<RefreshCcw className="size-3" />
+										<span className="font-mono">{timeRemaining}</span>
+									</div>
+									<TooltipProvider>
+										<Tooltip delayDuration={50}>
+											<TooltipTrigger>
+												<Info className="size-3 text-slate-400" />
+											</TooltipTrigger>
+											<TooltipContent className="bg-slate-950 border-emerald-500/20">
+												Revalidation timing due to API limits
+											</TooltipContent>
+										</Tooltip>
+									</TooltipProvider>
+								</div>
 							)}
 						</div>
 						<div className="w-full sm:w-auto">
@@ -493,6 +510,12 @@ export default function Crypto({
 						totalPages={cryptoTotalPages}
 						onPageChange={setCryptoCurrentPage}
 					/>
+				</div>
+				<div className="flex items-center justify-center text-xs gap-1 text-gray-300">
+					2025,{' '}
+					<Link href="https://wolfey.me" target="_blank">
+						wolfey.me
+					</Link>
 				</div>
 			</div>
 		</div>
