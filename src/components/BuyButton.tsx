@@ -106,9 +106,8 @@ export default function BuyButton({
 				<Dialog open={open} onOpenChange={setOpen}>
 					<DialogTrigger asChild>
 						<Button
-							variant="outline"
 							size="sm"
-							className="bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/20"
+							className="bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 hover:text-emerald-300"
 						>
 							Buy
 						</Button>

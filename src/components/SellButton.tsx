@@ -97,9 +97,8 @@ export default function SellButton({
 				<Dialog open={open} onOpenChange={setOpen}>
 					<DialogTrigger asChild>
 						<Button
-							variant="outline"
 							size="sm"
-							className="bg-red-500/10 hover:bg-red-500/20 border-red-500/20"
+							className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 hover:text-red-300"
 						>
 							Sell
 						</Button>

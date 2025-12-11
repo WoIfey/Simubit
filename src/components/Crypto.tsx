@@ -281,114 +281,113 @@ export default function Crypto({
 								/>
 							</div>
 						</div>
-						<div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-emerald-500/20 scrollbar-track-transparent">
-							<Table>
-								<TableHeader>
-									<TableRow className="border-emerald-500/20 hover:bg-transparent text-slate-400">
-										<TableHead className="w-[150px]">Bought</TableHead>
-										<TableHead>Name</TableHead>
-										<TableHead className="text-right">Units</TableHead>
-										<TableHead className="text-right">Balance</TableHead>
-										<TableHead className="text-right">Change</TableHead>
-										<TableHead className="w-[100px]"></TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody className="divide-y divide-emerald-500/10">
-									{ordersPageData.map(transaction => {
-										const cryptoData = data.find(
-											crypto => crypto.symbol === transaction.symbol
-										)
-										if (!cryptoData) return null
-										return (
-											<TableRow key={transaction.id} className="border-emerald-500/10">
-												<TableCell className="font-medium">
-													<div className="flex items-center">
-														{new Date(transaction.createdAt).toLocaleDateString()}
+						<Table>
+							<TableHeader>
+								<TableRow className="border-emerald-500/20 hover:bg-transparent text-slate-400">
+									<TableHead className="w-25 sm:w-30">Bought</TableHead>
+									<TableHead className="min-w-25">Name</TableHead>
+									<TableHead className="text-right">Units</TableHead>
+									<TableHead className="text-right">Balance</TableHead>
+									<TableHead className="text-right hidden sm:table-cell">
+										Change
+									</TableHead>
+									<TableHead className="w-20 sm:w-25"></TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody className="divide-y divide-emerald-500/10">
+								{ordersPageData.map(transaction => {
+									const cryptoData = data.find(
+										crypto => crypto.symbol === transaction.symbol
+									)
+									if (!cryptoData) return null
+									return (
+										<TableRow key={transaction.id} className="border-emerald-500/10">
+											<TableCell className="font-medium">
+												<div className="flex items-center">
+													{new Date(transaction.createdAt).toLocaleDateString()}
+												</div>
+											</TableCell>
+											<TableCell className="font-medium">
+												<div className="flex items-center gap-2">
+													<img
+														src={`https://assets.coincap.io/assets/icons/${transaction.symbol.toLowerCase()}@2x.png`}
+														alt={`${transaction.name} icon`}
+														className="inline-block w-6 h-6 shrink-0 rounded-full"
+													/>
+													<div className="flex flex-col min-w-0">
+														<span className="truncate">{transaction.name}</span>
+														<span className="text-slate-500 text-xs">
+															{transaction.symbol}
+														</span>
 													</div>
-												</TableCell>
-												<TableCell className="font-medium">
-													<div className="flex items-center">
-														<img
-															src={`https://assets.coincap.io/assets/icons/${transaction.symbol.toLowerCase()}@2x.png`}
-															alt={`${transaction.name} icon`}
-															className="inline-block w-6 h-6 mr-2 rounded-full"
-															onError={e => {
-																e.currentTarget.style.display = 'none'
-															}}
-														/>
-														<div className="flex flex-col">
-															{transaction.name}
-															<span className="text-slate-500">{transaction.symbol}</span>
-														</div>
-													</div>
-												</TableCell>
-												<TableCell className="text-right">
-													<TooltipProvider>
-														<Tooltip delayDuration={50}>
-															<TooltipTrigger className="cursor-help">
-																<span className="font-mono">{transaction.units}</span>
-															</TooltipTrigger>
-															<TooltipContent className="bg-slate-950 border-emerald-500/20">
-																Bought at{' '}
-																<span className="font-mono">
-																	{Number(transaction.purchase_price).toLocaleString('fi-FI', {
-																		style: 'currency',
-																		currency: 'USD',
-																	})}
-																</span>
-															</TooltipContent>
-														</Tooltip>
-													</TooltipProvider>
-												</TableCell>
-												<TableCell className="text-right">
-													<NumberFlow
-														value={transaction.units * cryptoData.quote.USD.price}
-														className="font-mono"
-														format={{ style: 'currency', currency: 'USD' }}
-													/>
-												</TableCell>
-												<TableCell
-													className={`text-right ${
-														calcResult(
-															transaction.purchase_price,
-															cryptoData?.quote?.USD?.price || 0
-														) > 0
-															? 'text-emerald-400'
-															: 'text-red-400'
-													}`}
-												>
-													<NumberFlow
-														value={
-															Number(
-																calcResult(
-																	transaction.purchase_price,
-																	cryptoData?.quote?.USD?.price || 0
-																).toFixed(4)
-															) / 100
-														}
-														className="font-mono"
-														format={{
-															style: 'percent',
-															maximumFractionDigits: 2,
-														}}
-													/>
-												</TableCell>
-												<TableCell className="text-right">
-													<SellButton
-														id={transaction.id}
-														symbol={transaction.symbol}
-														price={transaction.purchase_price}
-														name={transaction.name}
-														units={transaction.units}
-														session={session}
-													/>
-												</TableCell>
-											</TableRow>
-										)
-									})}
-								</TableBody>
-							</Table>
-						</div>
+												</div>
+											</TableCell>
+											<TableCell className="text-right">
+												<TooltipProvider>
+													<Tooltip delayDuration={50}>
+														<TooltipTrigger className="cursor-help">
+															<span className="font-mono">{transaction.units}</span>
+														</TooltipTrigger>
+														<TooltipContent>
+															Bought at{' '}
+															<span className="font-mono">
+																{Number(transaction.purchase_price).toLocaleString('fi-FI', {
+																	style: 'currency',
+																	currency: 'USD',
+																})}
+															</span>
+														</TooltipContent>
+													</Tooltip>
+												</TooltipProvider>
+											</TableCell>
+											<TableCell className="text-right">
+												<NumberFlow
+													value={transaction.units * cryptoData.quote.USD.price}
+													className="font-mono"
+													format={{ style: 'currency', currency: 'USD' }}
+												/>
+											</TableCell>
+											<TableCell
+												className={`text-right hidden sm:table-cell ${
+													calcResult(
+														transaction.purchase_price,
+														cryptoData?.quote?.USD?.price || 0
+													) > 0
+														? 'text-emerald-400'
+														: 'text-red-400'
+												}`}
+											>
+												<NumberFlow
+													value={
+														Number(
+															calcResult(
+																transaction.purchase_price,
+																cryptoData?.quote?.USD?.price || 0
+															).toFixed(4)
+														) / 100
+													}
+													className="font-mono"
+													format={{
+														style: 'percent',
+														maximumFractionDigits: 2,
+													}}
+												/>
+											</TableCell>
+											<TableCell className="text-right">
+												<SellButton
+													id={transaction.id}
+													symbol={transaction.symbol}
+													price={transaction.purchase_price}
+													name={transaction.name}
+													units={transaction.units}
+													session={session}
+												/>
+											</TableCell>
+										</TableRow>
+									)
+								})}
+							</TableBody>
+						</Table>
 						{ordersTotalPages > 1 && (
 							<PaginationWrapper
 								currentPage={ordersCurrentPage}
@@ -413,7 +412,7 @@ export default function Crypto({
 											<TooltipTrigger>
 												<Info className="size-3 text-slate-400" />
 											</TooltipTrigger>
-											<TooltipContent className="bg-slate-950 border-emerald-500/20">
+											<TooltipContent>
 												Revalidation timing due to API limits
 											</TooltipContent>
 										</Tooltip>
@@ -434,77 +433,72 @@ export default function Crypto({
 							/>
 						</div>
 					</div>
-					<div className="w-full overflow-x-auto">
-						<Table>
-							<TableHeader>
-								<TableRow className="border-emerald-500/20 hover:bg-transparent text-slate-400">
-									<TableHead className="w-[70px]">Rank</TableHead>
-									<TableHead>Name</TableHead>
-									<TableHead className="text-right">Price</TableHead>
-									<TableHead className="text-right">24h %</TableHead>
-									<TableHead className="w-[100px]"></TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody className="divide-y divide-emerald-500/10">
-								{cryptoPageData.map((crypto, index) => (
-									<TableRow key={crypto.id} className="border-emerald-500/10">
-										<TableCell className="font-medium text-center">
-											{(cryptoCurrentPage - 1) * 10 + index + 1}
-										</TableCell>
-										<TableCell className="font-medium">
-											<div className="flex items-center">
-												<img
-													src={`https://assets.coincap.io/assets/icons/${crypto.symbol.toLowerCase()}@2x.png`}
-													alt={`${crypto.name} icon`}
-													className="inline-block w-6 h-6 mr-2 rounded-full"
-													onError={e => {
-														e.currentTarget.style.display = 'none'
-													}}
-												/>
-												<div className="flex flex-col">
-													{crypto?.name}
-													<span className="text-slate-500">{crypto?.symbol}</span>
-												</div>
+					<Table>
+						<TableHeader>
+							<TableRow className="border-emerald-500/20 hover:bg-transparent text-slate-400">
+								<TableHead className="w-12 sm:w-17.5">Rank</TableHead>
+								<TableHead className="min-w-25">Name</TableHead>
+								<TableHead className="text-right">Price</TableHead>
+								<TableHead className="text-right hidden sm:table-cell">24h %</TableHead>
+								<TableHead className="w-20 sm:w-25"></TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody className="divide-y divide-emerald-500/10">
+							{cryptoPageData.map((crypto, index) => (
+								<TableRow key={crypto.id} className="border-emerald-500/10">
+									<TableCell className="font-medium text-center text-sm">
+										{(cryptoCurrentPage - 1) * 10 + index + 1}
+									</TableCell>
+									<TableCell className="font-medium">
+										<div className="flex items-center gap-2">
+											<img
+												src={`https://assets.coincap.io/assets/icons/${crypto.symbol.toLowerCase()}@2x.png`}
+												alt={`${crypto.name} icon`}
+												className="inline-block w-6 h-6 shrink-0 rounded-full"
+											/>
+											<div className="flex flex-col min-w-0">
+												<span className="truncate">{crypto?.name}</span>
+												<span className="text-slate-500 text-xs">{crypto?.symbol}</span>
 											</div>
-										</TableCell>
-										<TableCell className="text-right">
-											<NumberFlow
-												value={crypto?.quote?.USD?.price || 0}
-												className="font-mono"
-												format={{ style: 'currency', currency: 'USD' }}
-											/>
-										</TableCell>
-										<TableCell
-											className={`text-right ${
-												crypto?.quote?.USD?.percent_change_24h > 0
-													? 'text-emerald-400'
-													: 'text-red-400'
-											}`}
-										>
-											<NumberFlow
-												value={crypto?.quote?.USD?.percent_change_24h / 100 || 0}
-												className="font-mono"
-												format={{
-													style: 'percent',
-													maximumFractionDigits: 2,
-												}}
-											/>
-										</TableCell>
-										<TableCell className="text-right">
-											<BuyButton
-												symbol={crypto?.symbol}
-												price={crypto?.quote?.USD?.price || 0}
-												name={crypto?.name}
-												id={crypto?.id.toString()}
-												balance={initialBalance}
-												session={session}
-											/>
-										</TableCell>
-									</TableRow>
-								))}
-							</TableBody>
-						</Table>
-					</div>
+										</div>
+									</TableCell>
+									<TableCell className="text-right">
+										<NumberFlow
+											value={crypto?.quote?.USD?.price || 0}
+											className="font-mono text-sm"
+											format={{ style: 'currency', currency: 'USD' }}
+										/>
+									</TableCell>
+									<TableCell
+										className={`text-right hidden sm:table-cell ${
+											crypto?.quote?.USD?.percent_change_24h > 0
+												? 'text-emerald-400'
+												: 'text-red-400'
+										}`}
+									>
+										<NumberFlow
+											value={crypto?.quote?.USD?.percent_change_24h / 100 || 0}
+											className="font-mono"
+											format={{
+												style: 'percent',
+												maximumFractionDigits: 2,
+											}}
+										/>
+									</TableCell>
+									<TableCell className="text-right">
+										<BuyButton
+											symbol={crypto?.symbol}
+											price={crypto?.quote?.USD?.price || 0}
+											name={crypto?.name}
+											id={crypto?.id.toString()}
+											balance={initialBalance}
+											session={session}
+										/>
+									</TableCell>
+								</TableRow>
+							))}
+						</TableBody>
+					</Table>
 					<PaginationWrapper
 						currentPage={cryptoCurrentPage}
 						totalPages={cryptoTotalPages}
