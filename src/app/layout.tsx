@@ -18,10 +18,10 @@ export const metadata: Metadata = {
 		url: 'https://simubit.vercel.app/',
 		images: [
 			{
-				url: 'https://wolfey.s-ul.eu/jDvsHevo',
-				width: 1280,
-				height: 720,
-				alt: 'Thumbnail',
+				url: '/cover.png',
+				width: 1920,
+				height: 1080,
+				alt: 'Simubit thumbnail',
 			},
 		],
 		locale: 'en_US',
